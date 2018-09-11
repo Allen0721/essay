@@ -1,259 +1,102 @@
-(function($) {
+/* 
+	2018.8.26 modify by lcc 
+	based on the js plugin http://www.htmleaf.com/jQuery/Menu-Navigation/20141212771.html 
+	based on other unknown sources...
+	thanks for their open sources!
+*/
+jQuery(document).ready(function($){
 
-	skel.breakpoints({
-		xlarge:	'(max-width: 1680px)',
-		large:	'(max-width: 1280px)',
-		medium:	'(max-width: 980px)',
-		small:	'(max-width: 736px)',
-		xsmall:	'(max-width: 480px)',
-		xxsmall: '(max-width: 360px)'
-	});
+ 	"use strict";
 
-	/**
-	 * Applies parallax scrolling to an element's background image.
-	 * @return {jQuery} jQuery object.
-	 */
-	$.fn._parallax = function(intensity) {
+	/* Preloader */
+	var Annie_Preloader = function() {
+		$(window).on("load", function() { 
+			// fade out the loading animation
+			$("#status").fadeOut(); 
 
-		var	$window = $(window),
-			$this = $(this);
+			//fade out the white DIV that covers the website
+			$("#preloader").delay(400).fadeOut("slow"); 
+		});	
+	}; 
 
-		if (this.length == 0 || intensity === 0)
-			return $this;
+	/* Nav */
+	var Annie_Nav = function() {
+		// browser window scroll (in pixels) after which the "menu" link is shown
+		var offset = 300;
 
-		if (this.length > 1) {
+		var navigationContainer = $('#cd-nav');
+		var	mainNavigation = navigationContainer.find('#cd-main-nav ul');
 
-			for (var i=0; i < this.length; i++)
-				$(this[i])._parallax(intensity);
-
-			return $this;
-
-		}
-
-		if (!intensity)
-			intensity = 0.25;
-
-		$this.each(function() {
-
-			var $t = $(this),
-				$bg = $('<div class="bg"></div>').appendTo($t),
-				on, off;
-
-			on = function() {
-
-				$bg
-					.removeClass('fixed')
-					.css('transform', 'none');
-
-				$window
-					.on('scroll._parallax', function() {
-
-						$bg.css('transform', 'none');
-
-					});
-			};
-
-			off = function() {
-
-				$bg
-					.addClass('fixed')
-					.css('transform', 'none');
-
-				$window
-					.off('scroll._parallax');
-
-			};
-
-			// Disable parallax on ..
-				if (skel.vars.browser == 'ie'		// IE
-				||	skel.vars.browser == 'edge'		// Edge
-				||	window.devicePixelRatio > 1		// Retina/HiDPI (= poor performance)
-				||	skel.vars.mobile)				// Mobile devices
-					off();
-
-			// Enable everywhere else.
-				else {
-
-					skel.on('!large -large', on);
-					skel.on('+large', off);
-
-				}
-
+		//hide or show the "menu" link
+		checkMenu();
+		$(window).scroll(function(){
+			checkMenu();
 		});
 
-		$window
-			.off('load._parallax resize._parallax')
-			.on('load._parallax resize._parallax', function() {
-				$window.trigger('scroll');
-			});
+		//open or close the menu clicking on the bottom "menu" link
+		$('.cd-nav-trigger').on('click', function(){
+			$(this).toggleClass('menu-is-open');
+			//we need to remove the transitionEnd event handler (we add it when scolling up with the menu open)
+			mainNavigation.off('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend').toggleClass('is-visible');
+		});
 
-		return $(this);
+		function checkMenu() {
+			if( $(window).scrollTop() > offset && !navigationContainer.hasClass('is-fixed')) {
+				navigationContainer.addClass('is-fixed').find('.cd-nav-trigger').one('webkitAnimationEnd oanimationend msAnimationEnd animationend', function(){
+					mainNavigation.addClass('has-transitions');
+				});
+			} else if ($(window).scrollTop() <= offset) {
+				//check if the menu is open when scrolling up
+				if( mainNavigation.hasClass('is-visible')  && !$('html').hasClass('no-csstransitions') ) {
+					//close the menu with animation
+					mainNavigation.addClass('is-hidden').one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function(){
+						//wait for the menu to be closed and do the rest
+						mainNavigation.removeClass('is-visible is-hidden has-transitions');
+						navigationContainer.removeClass('is-fixed');
+						$('.cd-nav-trigger').removeClass('menu-is-open');
+					});
+				//check if the menu is open when scrolling up - fallback if transitions are not supported
+				} else if( mainNavigation.hasClass('is-visible')  && $('html').hasClass('no-csstransitions') ) {
+					mainNavigation.removeClass('is-visible has-transitions');
+					navigationContainer.removeClass('is-fixed');
+					$('.cd-nav-trigger').removeClass('menu-is-open');
+				//scrolling up with menu closed
+				} else {
+					navigationContainer.removeClass('is-fixed');
+					mainNavigation.removeClass('has-transitions');
+				}
+			} 
+		}	
+	}; 
 
+	/* Random bg-img for header*/
+	var Annie_Random = function() {
+		//generate a random img that pre_name 'from 0 to 110'
+		var random_bg = Math.floor(Math.random() * 109 + 1);
+		//var bg = 'url(/img/random/' + random_bg + '.jpg)';
+		var bg = 'url(/img/random/' + random_bg + '.jpg)';
+		$("header").css("background-image", bg);
 	};
 
-	$(function() {
+	/* ToTop */
+	var Annie_ToTop = function() {
+		/* your code */
+	};
 
-		var	$window = $(window),
-			$body = $('body'),
-			$wrapper = $('#wrapper'),
-			$header = $('#header'),
-			$nav = $('#nav'),
-			$main = $('#main'),
-			$navPanelToggle, $navPanel, $navPanelInner;
+	/* Toc */	
+	var Annie_Toc = function() {
+		/* your code */
+	};
 
-		// Disable animations/transitions until the page has loaded.
-			$window.on('load', function() {
-				window.setTimeout(function() {
-					$body.removeClass('is-loading');
-				}, 100);
-			});
+	/* other js function */
+	/* ... */
 
-		// Prioritize "important" elements on medium.
-			skel.on('+medium -medium', function() {
-				$.prioritize(
-					'.important\\28 medium\\29',
-					skel.breakpoint('medium').active
-				);
-			});
-
-		// Scrolly.
-			$('.scrolly').scrolly();
-
-		// Background.
-			$wrapper._parallax(0.925);
-
-		// Nav Panel.
-
-			// Toggle.
-				$navPanelToggle = $(
-					'<a href="#navPanel" id="navPanelToggle">Menu</a>'
-				)
-					.appendTo($wrapper);
-
-				// Change toggle styling once we've scrolled past the header.
-					$header.scrollex({
-						bottom: '5vh',
-						enter: function() {
-							$navPanelToggle.removeClass('alt');
-						},
-						leave: function() {
-							$navPanelToggle.addClass('alt');
-						}
-					});
-
-			// Panel.
-				$navPanel = $(
-					'<div id="navPanel">' +
-						'<nav>' +
-						'</nav>' +
-						'<a href="#navPanel" class="close"></a>' +
-					'</div>'
-				)
-					.appendTo($body)
-					.panel({
-						delay: 500,
-						hideOnClick: true,
-						hideOnSwipe: true,
-						resetScroll: true,
-						resetForms: true,
-						side: 'right',
-						target: $body,
-						visibleClass: 'is-navPanel-visible'
-					});
-
-				// Get inner.
-					$navPanelInner = $navPanel.children('nav');
-
-				// Move nav content on breakpoint change.
-					var $navContent = $nav.children();
-
-					skel.on('!medium -medium', function() {
-
-						// NavPanel -> Nav.
-							$navContent.appendTo($nav);
-
-						// Flip icon classes.
-							$nav.find('.icons, .icon')
-								.removeClass('alt');
-
-					});
-
-					skel.on('+medium', function() {
-
-						// Nav -> NavPanel.
-						$navContent.appendTo($navPanelInner);
-
-						// Flip icon classes.
-							$navPanelInner.find('.icons, .icon')
-								.addClass('alt');
-
-					});
-
-				// Hack: Disable transitions on WP.
-					if (skel.vars.os == 'wp'
-					&&	skel.vars.osVersion < 10)
-						$navPanel
-							.css('transition', 'none');
-
-		// Intro.
-			var $intro = $('#intro');
-
-			if ($intro.length > 0) {
-
-				// Hack: Fix flex min-height on IE.
-					if (skel.vars.browser == 'ie') {
-						$window.on('resize.ie-intro-fix', function() {
-
-							var h = $intro.height();
-
-							if (h > $window.height())
-								$intro.css('height', 'auto');
-							else
-								$intro.css('height', h);
-
-						}).trigger('resize.ie-intro-fix');
-					}
-
-				// Hide intro on scroll (> small).
-					skel.on('!small -small', function() {
-
-						$main.unscrollex();
-
-						$main.scrollex({
-							mode: 'bottom',
-							top: '25vh',
-							bottom: '-50vh',
-							enter: function() {
-								$intro.addClass('hidden');
-							},
-							leave: function() {
-								$intro.removeClass('hidden');
-							}
-						});
-
-					});
-
-				// Hide intro on scroll (<= small).
-					skel.on('+small', function() {
-
-						$main.unscrollex();
-
-						$main.scrollex({
-							mode: 'middle',
-							top: '15vh',
-							bottom: '-15vh',
-							enter: function() {
-								$intro.addClass('hidden');
-							},
-							leave: function() {
-								$intro.removeClass('hidden');
-							}
-						});
-
-				});
-
-			}
-
-	});
-
-})(jQuery);
+	/* Initialize */
+	(function Annie_Init() {
+		Annie_Preloader();
+		Annie_Nav();
+		Annie_Random();
+		Annie_ToTop();
+		Annie_Toc();
+	})();
+});
